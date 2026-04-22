@@ -1,6 +1,13 @@
 """Database connection helpers used by initialization and future data access."""
 
+import psycopg
+
 from app.core.config import settings
+
+
+def get_db_connection():
+    """Open a psycopg connection using the configured PostgreSQL URL."""
+    return psycopg.connect(get_raw_database_url())
 
 
 def get_raw_database_url() -> str:

@@ -44,8 +44,9 @@
 Основные поля:
 
 - `id` — идентификатор события.
+- `event_uuid` — стабильный UUID события для идемпотентной загрузки.
 - `user_id` — ссылка на пользователя.
-- `event_name` — название события: `app_open`, `purchase`, `checkout_start`.
+- `event_name` — название события: `app_open`, `view_item`, `add_to_cart`, `purchase`, `subscription_start`, `subscription_renewal`.
 - `event_timestamp` — время события.
 - `event_value` — числовое значение, например выручка.
 - `event_properties` — JSONB с дополнительными параметрами события.

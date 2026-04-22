@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS experiment_assignments (
 
 CREATE TABLE IF NOT EXISTS events (
     id BIGSERIAL PRIMARY KEY,
+    event_uuid UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE,
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     event_name TEXT NOT NULL,
     event_timestamp TIMESTAMPTZ NOT NULL,

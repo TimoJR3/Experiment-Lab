@@ -66,6 +66,20 @@ copy .env.example .env
 docker compose up --build
 ```
 
+### Генерация synthetic data
+
+Сгенерировать preview без загрузки в БД:
+
+```bash
+python -m app.experiments.synthetic_data --users 250 --days 60 --seed 42
+```
+
+Сгенерировать данные и загрузить их в PostgreSQL:
+
+```bash
+python -m app.db.ingest_events --users 250 --days 60 --seed 42
+```
+
 ## Доступные endpoints
 
 - `GET /health` возвращает статус API.

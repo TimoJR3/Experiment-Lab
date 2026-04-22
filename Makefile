@@ -1,6 +1,6 @@
 PYTHON=python
 
-.PHONY: install run-api run-dashboard test init-db seed-db init-db-with-seed
+.PHONY: install run-api run-dashboard test init-db seed-db init-db-with-seed generate-data ingest-data
 
 install:
 	$(PYTHON) -m pip install --upgrade pip
@@ -23,3 +23,9 @@ seed-db:
 
 init-db-with-seed:
 	$(PYTHON) -m app.db.init_db --schema --seed
+
+generate-data:
+	$(PYTHON) -m app.experiments.synthetic_data --users 250 --days 60 --seed 42
+
+ingest-data:
+	$(PYTHON) -m app.db.ingest_events --users 250 --days 60 --seed 42
