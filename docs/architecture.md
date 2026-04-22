@@ -19,6 +19,7 @@ Data Layer (db session, models, PostgreSQL)
 - `app/api` contains HTTP routes and API-facing handlers.
 - `app/core` contains settings and shared cross-cutting utilities.
 - `app/db` contains database connection helpers and later will include persistence utilities.
+- `sql` contains PostgreSQL schema and seed scripts for local initialization.
 - `app/models` will store ORM models for events, experiments, and assignments.
 - `app/schemas` contains request and response schemas.
 - `app/services` will contain business logic separated from transport and storage.

@@ -1,9 +1,9 @@
 # Experiment Lab
 
-Experiment Lab is a portfolio pet project for simulating and analyzing product experiments.  
-Stage 1 contains only the scaffold: API, dashboard, database container, tests, and developer tooling.
+Experiment Lab — это pet-project для портфолио, в котором моделируется сервис для запуска и анализа продуктовых экспериментов.  
+Этап 1 содержит только scaffold проекта: API, dashboard, контейнер с базой данных, тесты и базовую инженерную упаковку.
 
-## Stack
+## Стек
 
 - Python 3.11
 - FastAPI
@@ -14,75 +14,77 @@ Stage 1 contains only the scaffold: API, dashboard, database container, tests, a
 - SciPy / statsmodels
 - pytest
 
-## Repository Structure
+## Структура репозитория
 
 ```text
 .
-├── app/
-│   ├── api/
-│   ├── core/
-│   ├── db/
-│   ├── experiments/
-│   ├── models/
-│   ├── schemas/
-│   ├── services/
-│   └── main.py
-├── dashboard/
-├── docs/
-├── tests/
-├── .env.example
-├── Dockerfile
-├── Makefile
-├── README.md
-├── docker-compose.yml
-└── requirements.txt
+|-- app/
+|   |-- api/
+|   |-- core/
+|   |-- db/
+|   |-- experiments/
+|   |-- models/
+|   |-- schemas/
+|   |-- services/
+|   `-- main.py
+|-- dashboard/
+|-- docs/
+|-- sql/
+|-- tests/
+|-- .env.example
+|-- Dockerfile
+|-- Makefile
+|-- README.md
+|-- docker-compose.yml
+`-- requirements.txt
 ```
 
-## Quickstart
+## Быстрый старт
 
-### Local launch
+### Локальный запуск
 
-1. Create and activate a virtual environment.
-2. Copy `.env.example` to `.env`.
-3. Install dependencies.
-4. Run API and dashboard.
+1. Создай и активируй виртуальное окружение.
+2. Скопируй `.env.example` в `.env`.
+3. Установи зависимости.
+4. Запусти API и dashboard.
 
 ```bash
 python -m venv .venv
 .venv\Scripts\activate
 copy .env.example .env
 pip install -r requirements.txt
+python -m app.db.init_db --schema --seed
 uvicorn app.main:app --reload
 streamlit run dashboard/app.py
 pytest -q
 ```
 
-### Docker launch
+### Запуск через Docker
 
 ```bash
 copy .env.example .env
 docker compose up --build
 ```
 
-## Available Endpoints
+## Доступные endpoints
 
-- `GET /health` returns the API health status.
+- `GET /health` возвращает статус API.
 
-## Current Stage Scope
+## Что входит в текущий этап
 
-Stage 1 intentionally does not include:
+На этапе 1 проект специально не включает:
 
-- experiment logic
-- event ingestion
-- user randomization
-- statistical analysis
-- production dashboards
+- логику экспериментов
+- ingestion событий
+- разбиение пользователей на группы
+- статистический анализ
+- полноценные продуктовые dashboard
 
-## Next Stage
+## Что будет дальше
 
-The next stage is to add the first real data model and persistence flow:
+Следующий этап — добавить первые реальные сущности и работу с данными:
 
-- PostgreSQL schema for events and experiments
+- PostgreSQL schema для событий и экспериментов
 - SQLAlchemy models
-- simple CRUD for experiment description
-- basic event loading for demo data
+- простой CRUD для описания эксперимента
+- базовую загрузку demo-данных

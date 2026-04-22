@@ -1,6 +1,6 @@
 PYTHON=python
 
-.PHONY: install run-api run-dashboard test lint
+.PHONY: install run-api run-dashboard test init-db seed-db init-db-with-seed
 
 install:
 	$(PYTHON) -m pip install --upgrade pip
@@ -14,3 +14,12 @@ run-dashboard:
 
 test:
 	pytest -q
+
+init-db:
+	$(PYTHON) -m app.db.init_db --schema
+
+seed-db:
+	$(PYTHON) -m app.db.init_db --seed
+
+init-db-with-seed:
+	$(PYTHON) -m app.db.init_db --schema --seed
