@@ -96,6 +96,8 @@
 - `user_id` — ссылка на пользователя.
 - `assigned_at` — когда пользователь был назначен.
 - `assignment_source` — способ назначения, например `hash` или `seed`.
+- `assignment_bucket` — bucket, полученный из deterministic hash split.
+- `assignment_metadata` — служебные детали назначения в JSONB.
 
 Ключевая идея:
 

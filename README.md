@@ -83,6 +83,8 @@ python -m app.db.ingest_events --users 250 --days 60 --seed 42
 ## Доступные endpoints
 
 - `GET /health` возвращает статус API.
+- `POST /experiments` создаёт эксперимент в статусе `draft`.
+- `POST /experiments/{experiment_key}/start` запускает эксперимент и сохраняет назначения пользователей.
 
 ## Что входит в текущий этап
 

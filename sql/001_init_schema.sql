@@ -67,6 +67,8 @@ CREATE TABLE IF NOT EXISTS experiment_assignments (
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     assigned_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     assignment_source TEXT NOT NULL DEFAULT 'hash',
+    assignment_bucket NUMERIC(8,6),
+    assignment_metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (experiment_id, user_id),
