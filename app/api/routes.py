@@ -9,15 +9,18 @@ from app.schemas.experiments import (
     ExperimentStartRequest,
     ExperimentSummaryResponse,
 )
+from app.schemas.metrics import ExperimentAnalysisResponse
 from app.services.experiment_service import (
     ExperimentNotFoundError,
     ExperimentService,
     ExperimentStatusError,
     ExperimentValidationError,
 )
+from app.services.metrics_service import MetricsService
 
 router = APIRouter()
 experiment_service = ExperimentService()
+metrics_service = MetricsService()
 
 
 @router.get("/health", response_model=HealthResponse, tags=["health"])
@@ -52,6 +55,23 @@ def start_experiment(
     """Start an experiment and persist deterministic assignments."""
     try:
         return experiment_service.start_experiment(experiment_key=experiment_key, payload=payload)
+    except ExperimentNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ExperimentStatusError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except ExperimentValidationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post(
+    "/experiments/{experiment_key}/analyze",
+    response_model=ExperimentAnalysisResponse,
+    tags=["experiments"],
+)
+def analyze_experiment(experiment_key: str) -> ExperimentAnalysisResponse:
+    """Calculate metrics, run statistical tests, and save analysis results."""
+    try:
+        return metrics_service.analyze_experiment(experiment_key=experiment_key)
     except ExperimentNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ExperimentStatusError as exc:

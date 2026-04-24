@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.schemas.experiments import ExperimentAssignmentResponse, ExperimentSummaryResponse, VariantAssignment
+from app.schemas.metrics import ExperimentAnalysisResponse, MetricResultResponse
 from app.services.experiment_service import ExperimentNotFoundError
 
 client = TestClient(app)
@@ -104,3 +105,40 @@ def test_start_experiment_endpoint_returns_assignments(monkeypatch) -> None:
     assert response.status_code == 200
     assert response.json()["status"] == "running"
     assert response.json()["assigned_users"] == 2
+
+
+def test_analyze_experiment_endpoint_returns_results(monkeypatch) -> None:
+    """Analyze endpoint should return saved metric results."""
+
+    def fake_analyze_experiment(experiment_key):
+        return ExperimentAnalysisResponse(
+            experiment_key=experiment_key,
+            results_saved=1,
+            results=[
+                MetricResultResponse(
+                    metric_key="conversion_rate",
+                    metric_name="Conversion Rate",
+                    baseline_variant_key="control",
+                    compared_variant_key="treatment",
+                    sample_size_baseline=100,
+                    sample_size_compared=100,
+                    baseline_value=0.1,
+                    compared_value=0.12,
+                    absolute_lift=0.02,
+                    relative_lift=0.2,
+                    p_value=0.5,
+                    ci_lower=-0.03,
+                    ci_upper=0.07,
+                    is_significant=False,
+                    test_method="two_proportion_ztest",
+                )
+            ],
+        )
+
+    monkeypatch.setattr("app.api.routes.metrics_service.analyze_experiment", fake_analyze_experiment)
+
+    response = client.post("/experiments/checkout_copy_v2/analyze")
+
+    assert response.status_code == 200
+    assert response.json()["results_saved"] == 1
+    assert response.json()["results"][0]["metric_key"] == "conversion_rate"
