@@ -4,12 +4,20 @@ services:
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     env_file:
       - .env
+    environment:
+      POSTGRES_HOST: db
     ports:
       - "8000:8000"
     volumes:
       - .:/code
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   dashboard:
     build: .
@@ -23,7 +31,8 @@ services:
     volumes:
       - .:/code
     depends_on:
-      - api
+      api:
+        condition: service_healthy
 
   db:
     image: postgres:16-alpine
@@ -36,6 +45,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./sql:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

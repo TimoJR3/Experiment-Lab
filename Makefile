@@ -1,6 +1,6 @@
 PYTHON=python
 
-.PHONY: install run-api run-dashboard test init-db seed-db init-db-with-seed generate-data ingest-data
+.PHONY: install run-api run-dashboard test check init-db seed-db init-db-with-seed generate-data ingest-data docker-up docker-down
 
 install:
 	$(PYTHON) -m pip install --upgrade pip
@@ -13,6 +13,10 @@ run-dashboard:
 	streamlit run dashboard/app.py
 
 test:
+	pytest -q
+
+check:
+	$(PYTHON) -m compileall app dashboard tests
 	pytest -q
 
 init-db:
@@ -29,3 +33,9 @@ generate-data:
 
 ingest-data:
 	$(PYTHON) -m app.db.ingest_events --users 250 --days 60 --seed 42
+
+docker-up:
+	docker compose up --build
+
+docker-down:
+	docker compose down

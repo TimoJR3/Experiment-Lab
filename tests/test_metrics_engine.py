@@ -110,3 +110,21 @@ def test_analyze_experiment_metrics_returns_all_supported_metrics() -> None:
         "average_order_value",
         "purchase_rate",
     }
+
+
+def test_relative_lift_is_none_when_control_value_is_zero() -> None:
+    """Relative lift should not divide by zero."""
+    baseline = [
+        ParticipantMetrics(1, 10, "control", 0, 0.0, ()),
+        ParticipantMetrics(2, 10, "control", 0, 0.0, ()),
+    ]
+    compared = [
+        ParticipantMetrics(3, 20, "treatment", 1, 50.0, (50.0,)),
+        ParticipantMetrics(4, 20, "treatment", 0, 0.0, ()),
+    ]
+
+    result = analyze_metric("average_revenue_per_user", baseline, compared)
+
+    assert result.baseline_value == 0.0
+    assert result.compared_value == 25.0
+    assert result.relative_lift is None

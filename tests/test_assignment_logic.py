@@ -42,6 +42,25 @@ def test_assignment_supports_multiple_users() -> None:
     assert {item.variant_key for item in results}.issubset({"control", "treatment"})
 
 
+def test_assignment_distribution_is_reasonable_for_large_sample() -> None:
+    """Hash split should be close to configured allocation on a larger sample."""
+    results = assign_users("checkout_v2", user_ids=list(range(1, 1001)), variants=_variants())
+    control_share = sum(item.variant_key == "control" for item in results) / len(results)
+
+    assert 0.45 <= control_share <= 0.55
+
+
+def test_assignment_rejects_invalid_allocation_sum() -> None:
+    """Assignment should fail when variant allocations do not sum to 100."""
+    bad_variants = [
+        VariantAllocation(variant_id=1, variant_key="control", allocation_percent=Decimal("70")),
+        VariantAllocation(variant_id=2, variant_key="treatment", allocation_percent=Decimal("20")),
+    ]
+
+    with pytest.raises(ValueError):
+        assign_user_to_variant("checkout_v2", user_id=101, variants=bad_variants)
+
+
 def test_experiment_create_request_requires_exactly_one_control() -> None:
     """Experiment payload must declare one control variant."""
     with pytest.raises(ValueError):
