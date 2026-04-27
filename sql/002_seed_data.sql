@@ -159,7 +159,12 @@ INSERT INTO events (
     event_value,
     event_properties
 )
-SELECT u.id, event_name, event_timestamp, event_value, event_properties::jsonb
+SELECT
+    u.id,
+    seed_events.event_name,
+    seed_events.event_timestamp::timestamptz,
+    seed_events.event_value,
+    seed_events.event_properties::jsonb
 FROM (
     VALUES
         ('user_001', 'app_open', '2026-04-10 09:00:00+00', NULL, '{"session_number": 1}'),
