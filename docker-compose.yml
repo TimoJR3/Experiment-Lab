@@ -21,11 +21,13 @@ services:
 
   dashboard:
     build: .
-    command: streamlit run dashboard/app.py --server.address 0.0.0.0 --server.port 8501
+    working_dir: /code
+    command: streamlit run dashboard/app.py --server.address=0.0.0.0 --server.port=8501
     env_file:
       - .env
     environment:
       API_BASE_URL: http://api:8000
+      PYTHONPATH: /code
     ports:
       - "8501:8501"
     volumes:
