@@ -1,45 +1,57 @@
 # Demo Checklist
 
-## Before Demo
+## Перед демо
 
-- Make sure Docker Desktop is running.
-- Run `copy .env.example .env` if `.env` does not exist.
-- Run `docker compose up --build`.
-- Open API docs at `http://localhost:8000/docs`.
-- Open dashboard at `http://localhost:8501`.
+- Убедиться, что Docker Desktop запущен.
+- Выполнить `copy .env.example .env`, если `.env` еще нет.
+- Выполнить `docker compose up --build`.
+- Открыть документацию API: `http://localhost:8000/docs`.
+- Открыть dashboard: `http://localhost:8501`.
 
-## Smoke Checks
+## Проверка демо в dashboard
 
-- `GET /health` returns `{"status": "ok"}`.
-- `GET /users/summary` returns non-zero users.
-- `GET /events/summary` returns event counts.
-- Dashboard loads without API connection errors.
+В Streamlit есть секция **"Проверка демо"**. Она показывает, какие части
+проекта сейчас работают:
 
-## Demo Flow
+- `GET /health` возвращает `{"status": "ok"}`;
+- сводка пользователей загружена и `users_count > 0`;
+- сводка событий загружена и `events_count > 0`;
+- список экспериментов доступен;
+- детали выбранного эксперимента загружаются;
+- назначения пользователей по группам доступны;
+- текущие метрики рассчитываются;
+- эндпоинт сохраненных результатов доступен.
 
-1. Show repository structure.
-2. Show PostgreSQL schema in `sql/001_init_schema.sql`.
-3. Show synthetic data generator in `app/experiments/synthetic_data.py`.
-4. Show deterministic assignment in `app/experiments/assignment.py`.
-5. Show metrics engine in `app/experiments/metrics.py`.
-6. Show FastAPI docs and endpoints.
-7. Show Streamlit dashboard.
-8. Explain live metrics versus saved results.
-9. Show tests and GitHub Actions workflow.
+Если сохраненных результатов еще нет, dashboard покажет предупреждение и
+подскажет запустить `POST /experiments/{key}/analyze`.
 
-## Good Talking Points
+## Сценарий показа
 
-- The project is not just EDA; it is an analytics service with engineering packaging.
-- Assignment is deterministic, reproducible, and stored.
-- Metrics are calculated from event data after assignment.
-- Statistical methods are intentionally simple and explainable.
-- Dashboard calls FastAPI rather than querying the database directly.
-- CI makes the project safer to change.
+1. Показать структуру репозитория.
+2. Показать PostgreSQL-схему в `sql/001_init_schema.sql`.
+3. Показать генератор synthetic data в `app/experiments/synthetic_data.py`.
+4. Показать deterministic assignment в `app/experiments/assignment.py`.
+5. Показать metrics engine в `app/experiments/metrics.py`.
+6. Показать FastAPI docs и основные endpoint'ы.
+7. Открыть русский Streamlit dashboard.
+8. Пройти по секциям: "Обзор", "Эксперименты", "Выбранный эксперимент",
+   "Метрики", "Статистические результаты", "Проверка демо".
+9. Объяснить разницу между текущими метриками и сохраненными результатами.
+10. Показать тесты и GitHub Actions workflow.
 
-## Known Limitations To Mention
+## Что важно проговорить
 
-- Synthetic data is not real production data.
-- No migrations yet.
-- No SRM checks or CUPED yet.
-- No overlapping experiment protection.
-- Dashboard is intentionally MVP.
+- Это не просто EDA, а аналитический сервис с инженерной упаковкой.
+- Assignment детерминированный, воспроизводимый и сохраняется в БД.
+- Метрики считаются из событий после назначения пользователей в группы.
+- Статистические методы намеренно простые и объяснимые.
+- Dashboard ходит в FastAPI, а не читает PostgreSQL напрямую.
+- CI и тесты делают проект безопаснее для изменений.
+
+## Ограничения, о которых стоит сказать честно
+
+- Синтетические данные не заменяют реальные production-данные.
+- Миграций пока нет.
+- SRM, CUPED и sequential testing пока не реализованы.
+- Нет защиты от пересекающихся экспериментов.
+- Dashboard сделан как portfolio MVP, а не как полноценная BI-система.

@@ -161,18 +161,23 @@ Details: [docs/metrics.md](docs/metrics.md).
 
 ## Dashboard
 
-The Streamlit dashboard shows:
+Streamlit dashboard полностью русскоязычный и подходит для демо на
+собеседовании. Он показывает весь путь продуктового A/B теста:
 
-- experiment list and status;
-- control/treatment group sizes;
-- live metrics calculated from current data;
-- saved statistical results;
-- short text summary: whether an effect was detected and how reliable it looks.
+- обзор пользователей, событий, типов событий и выручки;
+- список экспериментов со статусами на русском языке;
+- выбранный эксперимент, гипотезу, владельца и ключевую метрику;
+- размеры контрольной и тестовой групп;
+- текущие метрики, рассчитанные из событий и назначений;
+- сохраненные статистические результаты с uplift, p-value и CI;
+- итоговую бизнес-интерпретацию результата A/B теста;
+- блок "Проверка демо" с pass/fail проверками API и данных.
 
-Important distinction:
+Важное различие:
 
-- `/metrics` calculates current metrics on the fly;
-- `/results` reads saved results from `experiment_results` after `/analyze`.
+- `/metrics` считает текущие метрики на лету;
+- `/results` читает сохраненные результаты из `experiment_results`
+  после запуска `/analyze`.
 
 ## Repository Structure
 
