@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_HOST: db
     ports:
-      - "8000:8000"
+      - "${API_HOST_PORT:-8000}:8000"
     volumes:
       - .:/code
     depends_on:
@@ -29,7 +29,7 @@ services:
       API_BASE_URL: http://api:8000
       PYTHONPATH: /code
     ports:
-      - "8501:8501"
+      - "${DASHBOARD_HOST_PORT:-8501}:8501"
     volumes:
       - .:/code
     depends_on:
@@ -43,7 +43,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./sql:/docker-entrypoint-initdb.d

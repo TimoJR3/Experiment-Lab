@@ -42,6 +42,28 @@ big_data_checkout_test
 - deterministic assignment в контрольную и тестовую группы;
 - сохраненные результаты анализа с uplift, p-value и confidence interval.
 
+## Скриншоты dashboard
+
+### Обзор проекта и demo data
+
+![Обзор проекта и demo data](docs/assets/screenshots/01_dashboard_overview.png)
+
+### Распределение событий и список экспериментов
+
+![Распределение событий и список экспериментов](docs/assets/screenshots/02_events_and_experiments.png)
+
+### Выбранный эксперимент и разбиение пользователей
+
+![Выбранный эксперимент и разбиение пользователей](docs/assets/screenshots/03_selected_experiment.png)
+
+### Метрики control и treatment
+
+![Метрики control и treatment](docs/assets/screenshots/04_metrics.png)
+
+### Статистические результаты и итоговая интерпретация
+
+![Статистические результаты и итоговая интерпретация](docs/assets/screenshots/05_statistical_results.png)
+
 ## Что показывает проект
 
 - PostgreSQL data model для users, events, experiments, variants,
@@ -167,6 +189,24 @@ make check
 ```bash
 docker compose ps
 docker compose logs api
+```
+
+Если порты `5432`, `8000` или `8501` уже заняты другим локальным проектом,
+запустите Experiment Lab на альтернативных host-портах:
+
+```powershell
+$env:POSTGRES_HOST_PORT="5433"
+$env:API_HOST_PORT="8001"
+$env:DASHBOARD_HOST_PORT="8502"
+docker compose up --build -d
+docker compose exec api python -m app.db.prepare_demo
+```
+
+После этого откройте:
+
+```text
+Dashboard: http://localhost:8502
+Swagger: http://localhost:8001/docs
 ```
 
 Если в PowerShell команда `curl` работает не так, как ожидается, используйте:

@@ -101,6 +101,43 @@ def apply_theme() -> None:
             color: var(--ink);
         }}
 
+        [data-testid="stSidebar"] .stButton > button {{
+            width: 100%;
+            min-height: 46px;
+            background: linear-gradient(135deg, var(--green), #2F5A48);
+            color: #FFFDF8 !important;
+            border: 1px solid #0E2D22;
+            border-radius: 14px;
+            font-weight: 800;
+            letter-spacing: 0.01em;
+            box-shadow: 0 12px 24px rgba(23, 59, 47, 0.22);
+        }}
+
+        [data-testid="stSidebar"] .stButton > button:hover {{
+            background: linear-gradient(135deg, #214F3F, var(--brown));
+            color: #FFFDF8 !important;
+            border-color: var(--brown);
+            transform: translateY(-1px);
+        }}
+
+        [data-testid="stSidebar"] [data-baseweb="select"] > div {{
+            min-height: 48px;
+            background: #FFFDF8;
+            border: 2px solid var(--green);
+            border-radius: 14px;
+            box-shadow: 0 10px 22px rgba(31, 42, 36, 0.10);
+        }}
+
+        [data-testid="stSidebar"] [data-baseweb="select"] span {{
+            color: var(--green) !important;
+            font-weight: 750;
+        }}
+
+        [data-testid="stSidebar"] label {{
+            color: var(--green) !important;
+            font-weight: 800 !important;
+        }}
+
         div[data-testid="stMetric"] {{
             background: rgba(255, 253, 248, 0.92);
             border: 1px solid var(--line);
@@ -384,17 +421,38 @@ def event_distribution_chart(events_summary: dict[str, Any]) -> alt.Chart:
 
     return (
         alt.Chart(frame)
-        .mark_bar(color=GREEN, cornerRadiusTopLeft=6, cornerRadiusTopRight=6)
+        .mark_bar(color=GREEN, cornerRadiusTopRight=8, cornerRadiusBottomRight=8)
         .encode(
-            x=alt.X("Событие:N", sort="-y", title="Событие"),
-            y=alt.Y("Количество:Q", title="Количество событий"),
+            x=alt.X(
+                "Количество:Q",
+                title="Количество событий",
+                axis=alt.Axis(
+                    grid=True,
+                    labelFontSize=12,
+                    titleFontSize=13,
+                    titlePadding=10,
+                ),
+            ),
+            y=alt.Y(
+                "Событие:N",
+                sort="-x",
+                title=None,
+                axis=alt.Axis(labelFontSize=13, labelLimit=220),
+            ),
             tooltip=[
                 alt.Tooltip("Событие:N", title="Событие"),
-                alt.Tooltip("Количество:Q", title="Количество"),
+                alt.Tooltip("Количество:Q", title="Количество", format=","),
             ],
         )
-        .properties(title="Распределение событий в синтетическом журнале", height=310)
-        .configure_title(color=GREEN, fontSize=16, anchor="start")
+        .properties(title="Распределение событий в синтетическом журнале", height=330)
+        .configure_axis(
+            domain=False,
+            gridColor="#E8DFD1",
+            labelColor=INK,
+            titleColor=MUTED,
+        )
+        .configure_title(color=GREEN, fontSize=18, anchor="start", fontWeight=700)
+        .configure_view(strokeWidth=0)
     )
 
 
@@ -408,22 +466,48 @@ def assignment_chart(groups: list[dict[str, Any]]) -> alt.Chart:
 
     return (
         alt.Chart(frame)
-        .mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6)
+        .mark_bar(cornerRadiusTopLeft=9, cornerRadiusTopRight=9)
         .encode(
-            x=alt.X("Группа:N", title="Группа"),
-            y=alt.Y("Пользователи:Q", title="Количество пользователей"),
+            x=alt.X(
+                "Группа:N",
+                title=None,
+                axis=alt.Axis(labelAngle=0, labelFontSize=13),
+            ),
+            y=alt.Y(
+                "Пользователи:Q",
+                title="Количество пользователей",
+                axis=alt.Axis(
+                    grid=True,
+                    labelFontSize=12,
+                    titleFontSize=13,
+                    titlePadding=10,
+                ),
+            ),
             color=alt.Color(
                 "Группа:N",
                 title="Группа",
                 scale=alt.Scale(range=[GREEN, BROWN]),
+                legend=alt.Legend(
+                    orient="top",
+                    labelFontSize=12,
+                    titleFontSize=12,
+                ),
             ),
             tooltip=[
                 alt.Tooltip("Группа:N", title="Группа"),
-                alt.Tooltip("Пользователи:Q", title="Пользователи"),
+                alt.Tooltip("Пользователи:Q", title="Пользователи", format=","),
             ],
         )
-        .properties(title="Размеры контрольной и тестовой групп", height=260)
-        .configure_title(color=GREEN, fontSize=16, anchor="start")
+        .properties(title="Размеры контрольной и тестовой групп", height=280)
+        .configure_axis(
+            domain=False,
+            gridColor="#E8DFD1",
+            labelColor=INK,
+            titleColor=MUTED,
+        )
+        .configure_legend(labelColor=INK, titleColor=MUTED)
+        .configure_title(color=GREEN, fontSize=18, anchor="start", fontWeight=700)
+        .configure_view(strokeWidth=0)
     )
 
 
@@ -450,14 +534,32 @@ def metric_comparison_chart(rows: list[dict[str, Any]]) -> alt.Chart:
     frame = pd.DataFrame(chart_rows)
     return (
         alt.Chart(frame)
-        .mark_bar(cornerRadiusTopLeft=5, cornerRadiusTopRight=5)
+        .mark_bar(cornerRadiusTopLeft=8, cornerRadiusTopRight=8)
         .encode(
-            x=alt.X("Метрика:N", title="Метрика"),
-            y=alt.Y("Значение:Q", title="Значение"),
+            x=alt.X(
+                "Метрика:N",
+                title=None,
+                axis=alt.Axis(labelAngle=-20, labelFontSize=12, labelLimit=150),
+            ),
+            y=alt.Y(
+                "Значение:Q",
+                title="Значение метрики",
+                axis=alt.Axis(
+                    grid=True,
+                    labelFontSize=12,
+                    titleFontSize=13,
+                    titlePadding=10,
+                ),
+            ),
             color=alt.Color(
                 "Группа:N",
                 title="Группа",
                 scale=alt.Scale(range=[GREEN, BROWN]),
+                legend=alt.Legend(
+                    orient="top",
+                    labelFontSize=12,
+                    titleFontSize=12,
+                ),
             ),
             xOffset="Группа:N",
             tooltip=[
@@ -466,8 +568,16 @@ def metric_comparison_chart(rows: list[dict[str, Any]]) -> alt.Chart:
                 alt.Tooltip("Значение:Q", title="Значение", format=".4f"),
             ],
         )
-        .properties(title="Сравнение метрик по группам", height=320)
-        .configure_title(color=GREEN, fontSize=16, anchor="start")
+        .properties(title="Сравнение метрик по группам", height=340)
+        .configure_axis(
+            domain=False,
+            gridColor="#E8DFD1",
+            labelColor=INK,
+            titleColor=MUTED,
+        )
+        .configure_legend(labelColor=INK, titleColor=MUTED)
+        .configure_title(color=GREEN, fontSize=18, anchor="start", fontWeight=700)
+        .configure_view(strokeWidth=0)
     )
 
 
@@ -479,10 +589,23 @@ def uplift_chart(rows: list[dict[str, Any]]) -> alt.Chart:
 
     return (
         alt.Chart(frame)
-        .mark_bar(cornerRadiusTopLeft=5, cornerRadiusTopRight=5)
+        .mark_bar(cornerRadiusTopLeft=8, cornerRadiusTopRight=8)
         .encode(
-            x=alt.X("Метрика:N", title="Метрика"),
-            y=alt.Y("Абсолютный эффект:Q", title="Абсолютный uplift"),
+            x=alt.X(
+                "Метрика:N",
+                title=None,
+                axis=alt.Axis(labelAngle=-20, labelFontSize=12, labelLimit=150),
+            ),
+            y=alt.Y(
+                "Абсолютный эффект:Q",
+                title="Абсолютный uplift",
+                axis=alt.Axis(
+                    grid=True,
+                    labelFontSize=12,
+                    titleFontSize=13,
+                    titlePadding=10,
+                ),
+            ),
             color=alt.condition(
                 alt.datum["Абсолютный эффект"] >= 0,
                 alt.value(GREEN),
@@ -498,8 +621,303 @@ def uplift_chart(rows: list[dict[str, Any]]) -> alt.Chart:
                 alt.Tooltip("p_value:Q", title="p-value", format=".4f"),
             ],
         )
-        .properties(title="Uplift по сохраненным результатам", height=280)
-        .configure_title(color=GREEN, fontSize=16, anchor="start")
+        .properties(title="Uplift по сохраненным результатам", height=310)
+        .configure_axis(
+            domain=False,
+            gridColor="#E8DFD1",
+            labelColor=INK,
+            titleColor=MUTED,
+        )
+        .configure_title(color=GREEN, fontSize=18, anchor="start", fontWeight=700)
+        .configure_view(strokeWidth=0)
+    )
+
+
+def _soft_chart_config(chart: alt.Chart) -> alt.Chart:
+    """Apply calm readable chart styling for the dashboard."""
+    return (
+        chart.configure_axis(
+            domain=False,
+            grid=True,
+            gridColor="#EEE5D8",
+            gridOpacity=0.85,
+            labelColor="#25352D",
+            labelFontSize=13,
+            labelPadding=8,
+            titleColor="#68746C",
+            titleFontSize=13,
+            titlePadding=12,
+            tickColor="#D9CDBB",
+        )
+        .configure_legend(
+            labelColor="#25352D",
+            labelFontSize=13,
+            orient="top",
+            symbolSize=140,
+            titleColor="#68746C",
+            titleFontSize=12,
+        )
+        .configure_title(
+            anchor="start",
+            color="#173B2F",
+            fontSize=18,
+            fontWeight=700,
+            offset=14,
+        )
+        .configure_view(stroke="#E7DDCE", strokeWidth=1)
+        .configure(background="#FFFDF8")
+    )
+
+
+def event_distribution_chart(events_summary: dict[str, Any]) -> alt.Chart:
+    """Build a calm horizontal event distribution chart."""
+    frame = rows_to_frame(events_summary.get("by_event_name"))
+    frame["Событие"] = frame["event_name"].map(event_label)
+    frame = frame.rename(columns={"events_count": "Количество"})
+
+    bars = (
+        alt.Chart(frame)
+        .mark_bar(color="#315746", cornerRadiusEnd=8, height=22)
+        .encode(
+            x=alt.X(
+                "Количество:Q",
+                title="Количество событий",
+                axis=alt.Axis(format="~s"),
+            ),
+            y=alt.Y(
+                "Событие:N",
+                sort="-x",
+                title=None,
+                axis=alt.Axis(labelLimit=260),
+            ),
+            tooltip=[
+                alt.Tooltip("Событие:N", title="Событие"),
+                alt.Tooltip("Количество:Q", title="Количество", format=","),
+            ],
+        )
+    )
+    labels = (
+        alt.Chart(frame)
+        .mark_text(
+            align="left",
+            baseline="middle",
+            dx=7,
+            color="#25352D",
+            fontSize=12,
+            fontWeight=600,
+        )
+        .encode(
+            x="Количество:Q",
+            y=alt.Y("Событие:N", sort="-x"),
+            text=alt.Text("Количество:Q", format=","),
+        )
+    )
+    return _soft_chart_config(
+        (bars + labels).properties(
+            title="Распределение событий",
+            height=max(280, len(frame) * 44),
+            padding={"left": 8, "right": 36, "top": 16, "bottom": 8},
+        )
+    )
+
+
+def assignment_chart(groups: list[dict[str, Any]]) -> alt.Chart:
+    """Build a readable assignment group size chart."""
+    frame = rows_to_frame(groups)
+    frame["Группа"] = frame["is_control"].map(
+        lambda value: "Контроль" if value else "Тестовый вариант"
+    )
+    frame = frame.rename(columns={"users_count": "Пользователи"})
+
+    bars = (
+        alt.Chart(frame)
+        .mark_bar(cornerRadiusEnd=10, height=34)
+        .encode(
+            x=alt.X(
+                "Пользователи:Q",
+                title="Количество пользователей",
+                axis=alt.Axis(format=","),
+            ),
+            y=alt.Y(
+                "Группа:N",
+                title=None,
+                axis=alt.Axis(labelLimit=220),
+            ),
+            color=alt.Color(
+                "Группа:N",
+                title=None,
+                scale=alt.Scale(range=["#315746", "#A4774E"]),
+            ),
+            tooltip=[
+                alt.Tooltip("Группа:N", title="Группа"),
+                alt.Tooltip("Пользователи:Q", title="Пользователи", format=","),
+            ],
+        )
+    )
+    labels = (
+        alt.Chart(frame)
+        .mark_text(
+            align="left",
+            baseline="middle",
+            dx=8,
+            color="#25352D",
+            fontSize=13,
+            fontWeight=700,
+        )
+        .encode(
+            x="Пользователи:Q",
+            y="Группа:N",
+            text=alt.Text("Пользователи:Q", format=","),
+        )
+    )
+    return _soft_chart_config(
+        (bars + labels).properties(
+            title="Размеры групп",
+            height=220,
+            padding={"left": 8, "right": 40, "top": 16, "bottom": 8},
+        )
+    )
+
+
+def metric_comparison_chart(rows: list[dict[str, Any]]) -> alt.Chart:
+    """Build a horizontal metric comparison chart with readable labels."""
+    chart_rows: list[dict[str, Any]] = []
+    for row in rows:
+        metric_name = metric_label(row.get("metric_key"))
+        chart_rows.extend(
+            [
+                {
+                    "Метрика": metric_name,
+                    "Группа": "Контроль",
+                    "Значение": row.get("baseline_value"),
+                },
+                {
+                    "Метрика": metric_name,
+                    "Группа": "Тестовый вариант",
+                    "Значение": row.get("compared_value"),
+                },
+            ]
+        )
+
+    frame = pd.DataFrame(chart_rows)
+    bars = (
+        alt.Chart(frame)
+        .mark_bar(cornerRadiusEnd=7, height=13)
+        .encode(
+            x=alt.X(
+                "Значение:Q",
+                title="Значение метрики",
+                axis=alt.Axis(format=".2f"),
+            ),
+            y=alt.Y(
+                "Метрика:N",
+                title=None,
+                axis=alt.Axis(labelLimit=260),
+            ),
+            yOffset=alt.YOffset("Группа:N"),
+            color=alt.Color(
+                "Группа:N",
+                title=None,
+                scale=alt.Scale(range=["#315746", "#A4774E"]),
+            ),
+            tooltip=[
+                alt.Tooltip("Метрика:N", title="Метрика"),
+                alt.Tooltip("Группа:N", title="Группа"),
+                alt.Tooltip("Значение:Q", title="Значение", format=".4f"),
+            ],
+        )
+    )
+    labels = (
+        alt.Chart(frame)
+        .mark_text(
+            align="left",
+            baseline="middle",
+            dx=7,
+            color="#25352D",
+            fontSize=11,
+            fontWeight=600,
+        )
+        .encode(
+            x="Значение:Q",
+            y=alt.Y("Метрика:N"),
+            yOffset=alt.YOffset("Группа:N"),
+            text=alt.Text("Значение:Q", format=".3f"),
+        )
+    )
+    return _soft_chart_config(
+        (bars + labels).properties(
+            title="Сравнение метрик",
+            height=max(300, len(rows) * 82),
+            padding={"left": 8, "right": 48, "top": 16, "bottom": 8},
+        )
+    )
+
+
+def uplift_chart(rows: list[dict[str, Any]]) -> alt.Chart:
+    """Build a readable horizontal uplift chart with a zero reference line."""
+    frame = rows_to_frame(rows)
+    frame["Метрика"] = frame["metric_key"].map(metric_label)
+    frame["Абсолютный uplift"] = frame["absolute_lift"]
+
+    bars = (
+        alt.Chart(frame)
+        .mark_bar(cornerRadiusEnd=7, height=22)
+        .encode(
+            x=alt.X(
+                "Абсолютный uplift:Q",
+                title="Абсолютный uplift",
+                axis=alt.Axis(format=".3f"),
+            ),
+            y=alt.Y(
+                "Метрика:N",
+                sort="-x",
+                title=None,
+                axis=alt.Axis(labelLimit=260),
+            ),
+            color=alt.condition(
+                alt.datum["Абсолютный uplift"] >= 0,
+                alt.value("#315746"),
+                alt.value("#9B4A38"),
+            ),
+            tooltip=[
+                alt.Tooltip("Метрика:N", title="Метрика"),
+                alt.Tooltip(
+                    "Абсолютный uplift:Q",
+                    title="Абсолютный uplift",
+                    format=".4f",
+                ),
+                alt.Tooltip("p_value:Q", title="p-value", format=".4f"),
+            ],
+        )
+    )
+    labels = (
+        alt.Chart(frame)
+        .mark_text(
+            align="left",
+            baseline="middle",
+            dx=7,
+            color="#25352D",
+            fontSize=11,
+            fontWeight=600,
+        )
+        .encode(
+            x="Абсолютный uplift:Q",
+            y=alt.Y("Метрика:N", sort="-x"),
+            text=alt.Text("Абсолютный uplift:Q", format=".4f"),
+        )
+    )
+    zero_line = alt.Chart(pd.DataFrame({"x": [0]})).mark_rule(
+        color="#8C7B66",
+        strokeDash=[4, 4],
+        strokeWidth=1.2,
+    ).encode(x="x:Q")
+
+    return _soft_chart_config(
+        (zero_line + bars + labels).properties(
+            title="Uplift по сохраненным результатам",
+            height=max(280, len(frame) * 58),
+            padding={"left": 8, "right": 52, "top": 16, "bottom": 8},
+        )
     )
 
 
@@ -863,7 +1281,8 @@ def render_sidebar(
         else:
             st.error("ОШИБКА: API недоступен")
 
-        if st.button("Обновить данные", use_container_width=True):
+        st.markdown("**Основное действие**")
+        if st.button("Обновить данные сейчас", use_container_width=True):
             st.cache_data.clear()
             st.rerun()
 
@@ -880,8 +1299,10 @@ def render_sidebar(
             selected = st.selectbox(
                 "Выберите эксперимент",
                 options=list(options.keys()),
+                help="Выберите эксперимент, чтобы увидеть группы, метрики и вывод.",
             )
             selected_id = options[selected]
+            st.caption("После выбора dashboard обновит все блоки для этого эксперимента.")
         else:
             st.info("Экспериментов пока нет.")
 
