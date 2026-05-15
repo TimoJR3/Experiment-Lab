@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import random
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Any
