@@ -29,6 +29,9 @@ jobs:
       - name: Compile Python modules
         run: python -m compileall app dashboard tests
 
+      - name: Run Ruff
+        run: ruff check .
+
       - name: Run tests
         run: pytest -q
 

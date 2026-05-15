@@ -1,16 +1,121 @@
 # Experiment Lab
 
-Experiment Lab - это portfolio-ready сервис для демонстрации A/B тестов в
-продуктовой аналитике. Проект показывает полный путь:
+Experiment Lab — демонстрационный проект по A/B-тестированию для
+Product Analyst / Data Analyst intern-junior роли. Проект показывает полный
+аналитический цикл: от событий пользователей и разбиения на control/treatment
+до продуктовых метрик, статистической интерпретации, API и dashboard.
 
 ```text
-пользователи и события -> эксперимент -> control/treatment assignment
--> метрики -> статистический анализ -> русский Streamlit dashboard
+users + events -> experiment setup -> deterministic assignment
+-> product metrics -> statistical analysis -> dashboard/API demo
 ```
 
-Проект рассчитан на Junior Data Scientist / Product Analyst / Data Analyst
-позиции: он показывает не только анализ, но и инженерную упаковку вокруг
-аналитики.
+## Бизнес-задача
+
+Команда продукта хочет понять, стоит ли выкатывать изменение в checkout. Для
+этого нужно не просто посмотреть на конверсию, а воспроизводимо:
+
+- собрать события пользователей;
+- создать гипотезу эксперимента;
+- разделить пользователей на control и treatment;
+- посчитать продуктовые метрики по группам;
+- оценить uplift, p-value и confidence interval;
+- сформулировать понятный продуктовый вывод.
+
+Проект честно моделирует этот процесс на synthetic data. Это лаборатория
+A/B-тестирования для демонстрации навыков, а не система для реального
+продуктового трафика.
+
+## Какие продуктовые вопросы решает проект
+
+- Улучшает ли тестовый вариант конверсию в покупку?
+- Как меняется ARPU после изменения checkout?
+- Не ухудшается ли average order value?
+- Меняется ли частота покупок на пользователя?
+- Является ли наблюдаемый эффект статистически убедительным?
+- Можно ли рассматривать treatment как кандидата на дальнейший rollout?
+
+## Продуктовые метрики
+
+| Метрика | Что показывает |
+|---|---|
+| `conversion_rate` | Доля назначенных пользователей, совершивших хотя бы одну покупку |
+| `average_revenue_per_user` / ARPU | Средняя выручка на назначенного пользователя |
+| `average_order_value` / AOV | Средняя сумма одного события `purchase` |
+| `purchase_rate` | Среднее число покупок на назначенного пользователя |
+| `absolute_lift` | Разница treatment minus control |
+| `relative_lift` | Относительное изменение к control |
+| `p_value` | Насколько наблюдаемая разница совместима с нулевой гипотезой |
+| `confidence_interval` | Интервал неопределенности для разницы treatment-control |
+
+## Дизайн эксперимента
+
+В проекте используется deterministic assignment:
+
+- для каждого пользователя считается hash от `experiment_key:user_id`;
+- hash переводится в стабильный bucket;
+- bucket сопоставляется с вариантом эксперимента;
+- один и тот же пользователь при повторном расчете попадает в ту же группу;
+- assignment сохраняется в PostgreSQL в таблице `experiment_assignments`;
+- дубли защищены ограничением уникальности `(experiment_id, user_id)`.
+
+Для demo-эксперимента используется разбиение:
+
+```text
+control: 50%
+treatment: 50%
+```
+
+Такой подход нужен, чтобы результат анализа был воспроизводимым: если
+пользователь случайно меняет группу между запусками, метрики становятся
+нестабильными.
+
+## Статистическая интерпретация
+
+Первая версия использует простые и объяснимые методы:
+
+- для бинарной метрики `conversion_rate` используется z-test для двух долей;
+- для числовых метрик ARPU, AOV и purchase rate используется Welch t-test;
+- dashboard показывает uplift, p-value, confidence interval и текстовый вывод.
+
+Пример интерпретации:
+
+```text
+Вариант B улучшил метрику, но результат пока не является статистически
+значимым. Это сигнал для анализа, а не доказанное продуктовое решение.
+```
+
+## Архитектура
+
+```text
+PostgreSQL
+  хранит users, events, experiments, assignments, metric definitions, results
+
+FastAPI
+  отдает health, summaries, experiments, assignments, metrics, results
+
+Metrics engine
+  считает conversion rate, ARPU, AOV, purchase rate, uplift и статтесты
+
+Streamlit dashboard
+  показывает русскоязычный интерфейс для демонстрации A/B-теста
+```
+
+Dashboard получает данные через FastAPI и не ходит в PostgreSQL напрямую.
+
+## Схема данных
+
+| Таблица | Назначение |
+|---|---|
+| `users` | Synthetic users с датой регистрации и атрибутами привлечения |
+| `events` | События продукта: open, view, cart, purchase, subscription |
+| `experiments` | Метаданные эксперимента, гипотеза, статус, владелец, основная метрика |
+| `experiment_variants` | Варианты control/treatment и проценты распределения |
+| `experiment_assignments` | Сохраненное назначение user-to-variant |
+| `metrics_definitions` | Справочник поддерживаемых метрик |
+| `experiment_results` | Сохраненные результаты анализа после `/analyze` |
+
+Подробнее: [docs/data_dictionary.md](docs/data_dictionary.md).
 
 ## Быстрый запуск демо
 
@@ -21,9 +126,9 @@ docker compose up --build -d
 docker compose exec api python -m app.db.prepare_demo
 ```
 
-После выполнения команды откройте:
+Откройте:
 
-| Что открыть | URL |
+| Сервис | URL |
 |---|---|
 | Dashboard | `http://localhost:8501` |
 | Swagger / FastAPI Docs | `http://localhost:8000/docs` |
@@ -34,101 +139,49 @@ docker compose exec api python -m app.db.prepare_demo
 big_data_checkout_test
 ```
 
-Этот сценарий создает воспроизводимый demo sample:
+Команда подготовки демо создает или переиспользует:
 
 - 10 000 synthetic users;
-- большой журнал e-commerce/product events;
+- события за 180 дней;
 - demo-эксперимент `big_data_checkout_test`;
-- deterministic assignment в контрольную и тестовую группы;
-- сохраненные результаты анализа с uplift, p-value и confidence interval.
+- назначения пользователей в control/treatment;
+- сохраненные результаты анализа.
 
-## Скриншоты dashboard
+## Скриншоты
 
-### Обзор проекта и demo data
+### Обзор
 
-![Обзор проекта и demo data](docs/assets/screenshots/01_dashboard_overview.png)
+![Dashboard overview](docs/assets/screenshots/01_dashboard_overview.png)
 
-### Распределение событий и список экспериментов
+### Распределение событий и эксперименты
 
-![Распределение событий и список экспериментов](docs/assets/screenshots/02_events_and_experiments.png)
+![Event distribution and experiments](docs/assets/screenshots/02_events_and_experiments.png)
 
-### Выбранный эксперимент и разбиение пользователей
+### Выбранный эксперимент
 
-![Выбранный эксперимент и разбиение пользователей](docs/assets/screenshots/03_selected_experiment.png)
+![Selected experiment](docs/assets/screenshots/03_selected_experiment.png)
 
-### Метрики control и treatment
+### Метрики
 
-![Метрики control и treatment](docs/assets/screenshots/04_metrics.png)
+![Experiment metrics](docs/assets/screenshots/04_metrics.png)
 
-### Статистические результаты и итоговая интерпретация
+### Статистические результаты
 
-![Статистические результаты и итоговая интерпретация](docs/assets/screenshots/05_statistical_results.png)
+![Statistical results](docs/assets/screenshots/05_statistical_results.png)
 
-## Что показывает проект
+## Демо-сценарий
 
-- PostgreSQL data model для users, events, experiments, variants,
-  assignments, metric definitions и experiment results.
-- Synthetic data generator с реалистичной воронкой: `app_open`, `view_item`,
-  `add_to_cart`, `purchase`, `subscription_start`, `subscription_renewal`.
-- Детерминированное hash-based назначение пользователей в группы.
-- Metrics engine для conversion rate, ARPU, average order value и purchase rate.
-- Базовый статистический анализ с uplift, p-value и доверительными интервалами.
-- FastAPI backend с endpoint'ами для экспериментов, метрик и dashboard.
-- Русский Streamlit dashboard для демонстрации результата работодателю.
-- Docker Compose, pytest, GitHub Actions и MIT License.
+1. Запустить контейнеры через Docker Compose.
+2. Подготовить данные командой `python -m app.db.prepare_demo`.
+3. Открыть dashboard на `http://localhost:8501`.
+4. Выбрать `big_data_checkout_test`.
+5. Показать обзор: пользователи, события, типы событий, выручка.
+6. Показать размеры групп control и treatment.
+7. Показать метрики, uplift и p-value.
+8. Показать confidence interval и итоговую интерпретацию.
+9. Открыть Swagger и показать API endpoints, которые питают dashboard.
 
-## Стек
-
-| Область | Инструменты |
-|---|---|
-| Backend | Python 3.11, FastAPI |
-| Database | PostgreSQL |
-| Analytics | pandas, SciPy, statsmodels |
-| Dashboard | Streamlit, Altair |
-| Infrastructure | Docker Compose |
-| Quality | pytest, GitHub Actions |
-
-## Архитектура
-
-```text
-Synthetic Data Generator
-        |
-        v
-PostgreSQL <---- FastAPI Services <---- Streamlit Dashboard
-        ^              |
-        |              v
-SQL Schema       Assignment + Metrics Engine
-```
-
-Ключевая идея: события и назначения в эксперимент хранятся отдельно. События
-описывают поведение пользователей, а assignment-таблица описывает участие в
-A/B тесте. Метрики считаются через соединение этих данных.
-
-## Dashboard
-
-Dashboard доступен по адресу:
-
-```text
-http://localhost:8501
-```
-
-В нем есть секции:
-
-- **Обзор** - пользователи, события, типы событий и выручка.
-- **Эксперименты** - список экспериментов и статусы на русском языке.
-- **Выбранный эксперимент** - гипотеза, ключ, владелец и основная метрика.
-- **Разбиение пользователей** - размеры контрольной и тестовой групп.
-- **Метрики** - текущие метрики из events + assignments.
-- **Статистические результаты** - uplift, p-value, CI и значимость.
-- **Проверка демо** - pass/fail проверки API, данных и выбранного эксперимента.
-
-Важное различие:
-
-- `/metrics` считает текущие метрики на лету;
-- `/results` читает сохраненные результаты из `experiment_results` после
-  запуска `/analyze`.
-
-## API
+## API / Swagger
 
 Swagger доступен по адресу:
 
@@ -136,25 +189,25 @@ Swagger доступен по адресу:
 http://localhost:8000/docs
 ```
 
-Основные endpoint'ы:
+Основные endpoints:
 
 | Method | Endpoint | Назначение |
 |---|---|---|
-| `GET` | `/health` | Проверка API |
+| `GET` | `/health` | Проверка доступности API |
 | `GET` | `/experiments` | Список экспериментов |
 | `GET` | `/experiments/{id}` | Детали эксперимента |
 | `GET` | `/experiments/{id}/assignments` | Размеры групп |
-| `GET` | `/experiments/{id}/metrics` | Текущие метрики |
-| `GET` | `/experiments/{id}/results` | Сохраненные результаты |
-| `GET` | `/users/summary` | Сводка пользователей |
-| `GET` | `/events/summary` | Сводка событий |
-| `POST` | `/experiments` | Создать эксперимент |
-| `POST` | `/experiments/{experiment_key}/start` | Назначить пользователей |
-| `POST` | `/experiments/{experiment_key}/analyze` | Запустить анализ |
+| `GET` | `/experiments/{id}/metrics` | Расчет текущих метрик |
+| `GET` | `/experiments/{id}/results` | Сохраненные результаты анализа |
+| `GET` | `/users/summary` | Summary по пользователям |
+| `GET` | `/events/summary` | Summary по событиям |
+| `POST` | `/experiments` | Создание эксперимента |
+| `POST` | `/experiments/{experiment_key}/start` | Назначение пользователей |
+| `POST` | `/experiments/{experiment_key}/analyze` | Расчет и сохранение результатов |
 
-## Ручной локальный запуск
+## Локальный запуск без Docker
 
-Если Docker не используется, нужен PostgreSQL на `localhost:5432`.
+Нужен запущенный PostgreSQL.
 
 ```bash
 python -m venv .venv
@@ -169,30 +222,24 @@ uvicorn app.main:app --reload
 streamlit run dashboard/app.py
 ```
 
-## Тесты
+## Проверки
 
 ```bash
 python -m compileall app dashboard tests
 pytest -q
-```
-
-Или:
-
-```bash
-make check
+ruff check .
 ```
 
 ## Troubleshooting
 
-Если API не запускается:
+Если API не запущен:
 
 ```bash
 docker compose ps
 docker compose logs api
 ```
 
-Если порты `5432`, `8000` или `8501` уже заняты другим локальным проектом,
-запустите Experiment Lab на альтернативных host-портах:
+Если порты `5432`, `8000` или `8501` заняты другим проектом:
 
 ```powershell
 $env:POSTGRES_HOST_PORT="5433"
@@ -209,7 +256,7 @@ Dashboard: http://localhost:8502
 Swagger: http://localhost:8001/docs
 ```
 
-Если в PowerShell команда `curl` работает не так, как ожидается, используйте:
+Если PowerShell перехватывает `curl`, используйте:
 
 ```powershell
 curl.exe http://localhost:8000/health
@@ -221,62 +268,62 @@ curl.exe http://localhost:8000/health
 Invoke-RestMethod http://localhost:8000/health
 ```
 
-Если в dashboard нет данных или нет эксперимента `big_data_checkout_test`,
-повторно запустите:
+Если данные отсутствуют, повторите:
 
 ```bash
 docker compose exec api python -m app.db.prepare_demo
 ```
 
-Если нужно полностью пересоздать базу:
+## Ограничения
 
-```bash
-docker compose down -v
-docker compose up --build -d
-docker compose exec api python -m app.db.prepare_demo
-```
+- Данные synthetic, поэтому они не доказывают эффект на реальных пользователях.
+- Demo-сценарий сфокусирован на checkout и purchase behavior.
+- Assignment hash-based и не учитывает стратификацию.
+- Нет SRM check, CUPED, sequential testing и multiple testing correction.
+- Revenue-метрики могут быть скошенными, поэтому p-value нужно читать
+  осторожно.
+- Dashboard создан для объяснения аналитического workflow, а не как полноценный
+  BI-инструмент.
 
-## Структура репозитория
+## Что демонстрирует проект
+
+Для Product Analyst / Data Analyst intern-junior роли проект показывает:
+
+- понимание полного цикла A/B-теста;
+- умение формулировать продуктовую гипотезу и метрику успеха;
+- расчет conversion rate, ARPU, AOV, purchase rate и uplift;
+- базовую статистическую интерпретацию p-value и confidence interval;
+- моделирование event log и аналитической схемы PostgreSQL;
+- воспроизводимое разделение пользователей на control/treatment;
+- упаковку аналитики в FastAPI и Streamlit dashboard;
+- тесты, Docker Compose и понятный demo-запуск.
+
+## GitHub-подача
+
+Описание репозитория:
 
 ```text
-.
-|-- app/
-|   |-- api/              # FastAPI routes
-|   |-- core/             # configuration
-|   |-- db/               # DB connection, init, ingestion, demo setup
-|   |-- experiments/      # assignment, metrics, synthetic data
-|   |-- schemas/          # Pydantic schemas
-|   `-- services/         # business services
-|-- dashboard/            # Streamlit UI
-|-- docs/                 # project documentation
-|-- sql/                  # PostgreSQL schema and seed data
-|-- tests/                # pytest suite
-|-- docker-compose.yml
-|-- Dockerfile
-|-- Makefile
-`-- README.md
+Демонстрационный проект по A/B-тестированию с расчётом продуктовых метрик, статистической интерпретацией, FastAPI, PostgreSQL и Streamlit.
+```
+
+Темы:
+
+```text
+product-analytics, ab-testing, python, fastapi, postgresql, streamlit, statistics, uplift, confidence-intervals
 ```
 
 ## Документация
 
-- [Architecture](docs/architecture.md)
-- [Data Dictionary](docs/data_dictionary.md)
-- [Synthetic Data Decisions](docs/decisions.md)
-- [Experiment Flow](docs/experiment_flow.md)
-- [Metrics and Statistics](docs/metrics.md)
-- [Demo Checklist](docs/demo_checklist.md)
-- [Resume Bullets](docs/resume_bullets.md)
-- [Interview Story](docs/interview_story.md)
-
-## Ограничения
-
-- Synthetic data не заменяет production-данные.
-- Assignment пока hash-based, без stratification и overlapping experiment checks.
-- Нет SRM check, CUPED, sequential testing и multiple testing correction.
-- Revenue metrics могут быть skewed, поэтому p-value нужно интерпретировать
-  аккуратно.
-- Dashboard сделан как portfolio MVP, а не как полноценная BI-система.
+- [Продуктовый кейс](docs/product_case.md)
+- [Заметки для собеседования](docs/interview_notes.md)
+- [Архитектура](docs/architecture.md)
+- [Словарь данных](docs/data_dictionary.md)
+- [Решения по synthetic data](docs/decisions.md)
+- [Жизненный цикл эксперимента](docs/experiment_flow.md)
+- [Метрики и статистика](docs/metrics.md)
+- [Demo checklist](docs/demo_checklist.md)
+- [Bullets для резюме](docs/resume_bullets.md)
 
 ## License
 
-MIT License. See [LICENSE](LICENSE).
+MIT License. См. [LICENSE](LICENSE).
