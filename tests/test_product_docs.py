@@ -25,17 +25,18 @@ def test_readme_contains_cis_portfolio_sections() -> None:
         "## Пример гипотезы",
         "## Дизайн эксперимента",
         "## Метрики",
+        "## Почему нельзя смотреть только на p-value",
+        "## Как интерпретировать результат A/B-теста",
         "## Статистические методы",
         "## Архитектура проекта",
-        "## API endpoints",
+        "## API и примеры запросов",
         "## Dashboard и скриншоты",
         "## Как запустить локально",
-        "## Примеры API-запросов",
         "## Структура репозитория",
-        "## Ограничения",
-        "## Что можно улучшить",
-        "## Формулировки для резюме",
-        "## Рассказ о проекте для интервью",
+        "## Ограничения synthetic data",
+        "## Проверки",
+        "## GitHub-подача",
+        "## Документация",
     ]
 
     for section in required_sections:
@@ -86,6 +87,7 @@ def test_readme_embeds_existing_screenshots() -> None:
     image_paths = re.findall(r"!\[[^\]]*\]\(([^)]+)\)", readme)
 
     assert image_paths == [
+        "docs/images/swagger_api.png",
         "docs/assets/screenshots/01_dashboard_overview.png",
         "docs/assets/screenshots/02_events_and_experiments.png",
         "docs/assets/screenshots/03_selected_experiment.png",
@@ -96,26 +98,32 @@ def test_readme_embeds_existing_screenshots() -> None:
         assert (BASE_DIR / image_path).is_file()
 
 
-def test_readme_contains_resume_and_interview_materials() -> None:
-    """README должен содержать материалы для резюме и интервью."""
+def test_readme_contains_api_examples_and_interpretation() -> None:
+    """README должен содержать API examples и аналитическую интерпретацию."""
     readme = _read("README.md")
 
-    assert "### Product Analyst Intern" in readme
-    assert "### Data Analyst Intern" in readme
-    assert "### 60-секундный рассказ" in readme
-    assert "### 10 вопросов и ответов для интервью" in readme
-    assert readme.count("**") >= 20
+    for phrase in [
+        "curl http://localhost:8000/health",
+        "curl http://localhost:8000/experiments",
+        "curl http://localhost:8000/experiments/1",
+        "curl http://localhost:8000/experiments/1/assignments",
+        "curl http://localhost:8000/experiments/1/metrics",
+        "curl http://localhost:8000/experiments/1/results",
+        "curl -X POST http://localhost:8000/experiments",
+        "curl -X POST http://localhost:8000/experiments/checkout_copy_v2/start",
+        "curl -X POST http://localhost:8000/experiments/big_data_checkout_test/analyze",
+        "Зачем аналитику",
+        "Почему нельзя смотреть только на p-value",
+        "Как интерпретировать результат A/B-теста",
+    ]:
+        assert phrase in readme
 
 
 def test_github_presentation_is_documented() -> None:
     """README должен содержать описание и topics для GitHub."""
     readme = _read("README.md")
 
-    assert (
-        "Демонстрационный проект по A/B-тестированию с расчётом "
-        "продуктовых метрик, статистической интерпретацией, FastAPI, "
-        "PostgreSQL и Streamlit."
-    ) in readme
+    assert "Демонстрационный проект по A/B-тестированию с расчетом продуктовых метрик" in readme
     for topic in [
         "product-analytics",
         "ab-testing",
@@ -156,6 +164,7 @@ def test_product_docs_are_russian_and_honest() -> None:
         "Product Analyst",
         "Data Analyst",
         "synthetic",
+        "не притворяется реальной experimentation platform",
     ]:
         assert required_phrase.lower() in normalized_docs
 
@@ -164,6 +173,8 @@ def test_product_docs_are_russian_and_honest() -> None:
         "enterprise-level",
         "боевая система",
         "промышленная платформа",
+        "TODO",
+        "placeholder",
     ]
     for phrase in forbidden_phrases:
         assert phrase not in docs
@@ -175,5 +186,31 @@ def test_readme_documents_demo_command() -> None:
 
     assert "docker compose up --build -d" in readme
     assert "docker compose exec api python -m app.db.prepare_demo" in readme
+    assert "cp .env.example .env" in readme
     assert "http://localhost:8501" in readme
     assert "http://localhost:8000/docs" in readme
+
+
+def test_ab_testing_notes_and_architecture_are_documented() -> None:
+    """Docs должны покрывать architecture flow и базовые A/B concepts."""
+    architecture = _read("docs/architecture.md")
+    notes = _read("docs/ab_testing_notes.md")
+
+    for phrase in [
+        "PostgreSQL",
+        "FastAPI",
+        "Metrics engine",
+        "Streamlit Dashboard",
+        "synthetic users/events",
+        "experiment_results",
+    ]:
+        assert phrase in architecture
+
+    for phrase in [
+        "Control",
+        "Treatment",
+        "Uplift",
+        "Confidence Interval",
+        "нельзя считать надежным",
+    ]:
+        assert phrase in notes
