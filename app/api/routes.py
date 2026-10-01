@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, HTTPException, status
 
+from app.experiments.design import sample_ratio_mismatch, sample_size_two_proportions
 from app.schemas.dashboard import (
     EventsSummaryResponse,
     ExperimentAssignmentsResponse,
@@ -16,6 +17,12 @@ from app.schemas.experiments import (
     ExperimentCreateRequest,
     ExperimentStartRequest,
     ExperimentSummaryResponse,
+)
+from app.schemas.design import (
+    SampleSizeRequest,
+    SampleSizeResponse,
+    SrmRequest,
+    SrmResponse,
 )
 from app.schemas.health import HealthResponse
 from app.schemas.metrics import ExperimentAnalysisResponse
@@ -161,3 +168,48 @@ def analyze_experiment(experiment_key: str) -> ExperimentAnalysisResponse:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     except ExperimentValidationError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/design/sample-size", response_model=SampleSizeResponse, tags=["design"])
+def plan_sample_size(payload: SampleSizeRequest) -> SampleSizeResponse:
+    """Return users per group needed to detect the given relative lift."""
+    try:
+        plan = sample_size_two_proportions(
+            baseline_rate=payload.baseline_rate,
+            mde_relative=payload.mde_relative,
+            alpha=payload.alpha,
+            power=payload.power,
+            treatment_ratio=payload.treatment_ratio,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return SampleSizeResponse(
+        baseline_rate=plan.baseline_rate,
+        expected_rate=plan.expected_rate,
+        mde_absolute=plan.mde_absolute,
+        mde_relative=plan.mde_relative,
+        alpha=plan.alpha,
+        power=plan.power,
+        users_control=plan.users_control,
+        users_treatment=plan.users_treatment,
+        users_total=plan.users_total,
+    )
+
+
+@router.post("/design/srm-check", response_model=SrmResponse, tags=["design"])
+def check_sample_ratio(payload: SrmRequest) -> SrmResponse:
+    """Check whether observed group sizes match the planned split."""
+    try:
+        result = sample_ratio_mismatch(
+            observed=payload.observed,
+            expected_shares=payload.expected_shares,
+            threshold=payload.threshold,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return SrmResponse(
+        chi_square=result.chi_square,
+        p_value=result.p_value,
+        threshold=result.threshold,
+        has_mismatch=result.has_mismatch,
+    )

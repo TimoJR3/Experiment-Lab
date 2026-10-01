@@ -23,3 +23,11 @@ dist/
 build/
 *.egg-info/
 streamlit_static/
+
+# Local notes (not part of the project)
+AUDIT*.md
+docs/interview*.md
+docs/resume*.md
+AGENTS.md
+*_status.txt
+*_report.txt
